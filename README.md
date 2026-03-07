@@ -9,20 +9,16 @@ Personal collection of [Claude Code](https://docs.anthropic.com/en/docs/claude-c
 | [address-pr-comments](address-pr-comments/SKILL.md) | Interactive workflow for addressing GitHub PR review comments one by one |
 | [address-issues](address-issues/SKILL.md) | Process multiple items that need individual decisions sequentially |
 
-## Syncing
+## Setup
 
-After creating or updating skills in `~/.claude/skills/`, sync them to this repo:
+This repo lives directly in `~/.claude/skills/`. To sync after creating or updating skills:
 
 ```bash
-bash /tmp/claude-skills/sync.sh
+cd ~/.claude/skills && git add -A && git commit -m "Update skills" && git push
 ```
 
-The script copies all `SKILL.md` files (skipping workspace directories), commits, and pushes.
-
-## Installation
-
-Copy a skill directory into `~/.claude/skills/`:
+## Installation on a new machine
 
 ```bash
-cp -r address-pr-comments ~/.claude/skills/
+git clone git@github.com:EdoMon93/claude-skills.git ~/.claude/skills
 ```
