@@ -179,15 +179,26 @@ If no issues found, say "PR looks clean" and offer to post an approval.
 
 ## Step 4: Create Pending Review and Post Comments
 
-First, create a pending review on GitHub using `pull_request_review_write` MCP tool:
+### Create the pending review
 
+Try the MCP tool first. If it fails (e.g., repo resolution error), fall back to the REST API:
+
+**MCP (try first):**
 ```
-method: "create"
-owner: {owner}
-repo: {repo}
-pullNumber: {number}
-# No event — creates a pending (draft) review
+pull_request_review_write:
+  method: "create"
+  owner: {owner}
+  repo: {repo}
+  pullNumber: {number}
+  # No event — creates a pending (draft) review
 ```
+
+**REST fallback:**
+```bash
+gh api repos/{owner}/{repo}/pulls/{number}/reviews --method POST -f body=""
+```
+
+Save the review's `node_id` (e.g., `PRR_kw...`) from the response — you'll need it for GraphQL mutations.
 
 Then ask via AskUserQuestion: **"Want to go through these one by one before I post the review?"**
 
@@ -202,29 +213,52 @@ Process each finding, ordered by criticality (critical first). For each:
    - **Skip** — exclude from review, move to next
    - **Stop** — halt here, move to submitting what's been posted so far
 
-When user approves or edits, post the comment immediately using `add_comment_to_pending_review` MCP tool:
+When user approves or edits, post the comment immediately.
 
+**MCP (try first):**
 ```
-owner: {owner}
-repo: {repo}
-pullNumber: {number}
-path: "app/models/user.rb"
-line: 45
-side: "RIGHT"
-body: "Comment text"
-subjectType: "LINE"
+add_comment_to_pending_review:
+  owner: {owner}
+  repo: {repo}
+  pullNumber: {number}
+  path: "app/models/user.rb"
+  line: 45
+  side: "RIGHT"
+  body: "Comment text"
+  subjectType: "LINE"
 ```
+
+**GraphQL fallback — use `addPullRequestReviewThread`:**
+```bash
+gh api graphql -f query='
+mutation {
+  addPullRequestReviewThread(input: {
+    pullRequestReviewId: "{review_node_id}",
+    path: "app/models/user.rb",
+    line: 45,
+    side: RIGHT,
+    body: "Comment text"
+  }) {
+    thread { id }
+  }
+}'
+```
+
+> **WARNING:** The REST endpoint `POST /repos/.../pulls/.../comments` does NOT accept `line`/`side`/`subject_type` fields.
+> The GraphQL mutation `addPullRequestReviewComment` also does NOT accept `line`/`side`.
+> Only `addPullRequestReviewThread` works for line-level comments on a pending review.
 
 ### If No — Post All
 
-Post all comments to the pending review at once using `add_comment_to_pending_review` for each finding.
+Post all comments to the pending review at once using the same approach (MCP or GraphQL fallback) for each finding.
 
 ### Field Notes
 
 - `side`: `RIGHT` for new/modified lines (almost always), `LEFT` for deleted lines
 - `line`: line number in the new file version (`RIGHT`) or old file version (`LEFT`); must be within a diff hunk
-- `subjectType`: `LINE` for line-specific comments, `FILE` for file-level comments
+- For multi-line comments, also pass `startLine` and `startSide`
 - For code suggestions, use GitHub's suggestion syntax in the body: ` ```suggestion\ncorrected code\n``` `
+- Escape single quotes in `gh api graphql` shell commands (use `'\''` inside single-quoted strings)
 
 ## Step 5: Submit Review
 
@@ -233,18 +267,42 @@ After all comments are posted (or user says stop), ask via AskUserQuestion what 
 - **Request changes** — blocking review
 - **Approve** — with optional notes
 
-Submit the pending review using `pull_request_review_write` MCP tool:
-
+**MCP (try first):**
 ```
-method: "submit_pending"
-owner: {owner}
-repo: {repo}
-pullNumber: {number}
-event: "REQUEST_CHANGES"  # or "COMMENT" or "APPROVE"
-body: "Review summary — N comments across M files"
+pull_request_review_write:
+  method: "submit_pending"
+  owner: {owner}
+  repo: {repo}
+  pullNumber: {number}
+  event: "REQUEST_CHANGES"  # or "COMMENT" or "APPROVE"
+  body: "Review summary — N comments across M files"
 ```
 
-If something goes wrong and you need to discard the review, use `method: "delete_pending"` instead.
+**GraphQL fallback:**
+```bash
+gh api graphql -f query='
+mutation {
+  submitPullRequestReview(input: {
+    pullRequestReviewId: "{review_node_id}",
+    event: COMMENT,
+    body: "Review summary — N comments across M files"
+  }) {
+    pullRequestReview { id state }
+  }
+}'
+```
+
+Valid events: `COMMENT`, `REQUEST_CHANGES`, `APPROVE`.
+
+If something goes wrong and you need to discard the review, use MCP `method: "delete_pending"` or:
+```bash
+gh api graphql -f query='
+mutation {
+  deletePullRequestReview(input: {
+    pullRequestReviewId: "{review_node_id}"
+  }) { pullRequestReview { id } }
+}'
+```
 
 ## Comment Tone
 
