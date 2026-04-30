@@ -20,9 +20,17 @@ Draft a short Slack-style message announcing that a PR is ready for review.
 
    Use this label as the leading tag in the announcement, in the form `[Bug fix]`, `[Feature]`, etc. Keep it to one or two words.
 
-4. **Write the summary.** Always state *what problem it solves* — the user-facing or system-level pain that goes away — followed (if needed) by a brief note on the change itself. Lead with the "why", not the "what". Keep it to one sentence when possible, two if the problem and the fix genuinely need to be separated.
+4. **Check for a bigger picture.** Decide whether this PR is one slice of a larger effort, and if so, capture it in one short line. Look in this order:
+   - **Linear graph** (if a Linear issue is known): use the Linear MCP (`mcp__claude_ai_Linear__get_issue`) to fetch the issue and check its `parent`, `project`, and any sibling sub-issues. If the issue is one of several children of a parent, or one of several issues in an active project/initiative, that's the bigger picture.
+   - **Session context**: if the current conversation has been about a multi-PR effort, an epic, a migration, or a larger refactor, use that — the user has already told you the framing.
 
-5. **Output the message** in this shape, ready to paste into Slack:
+   If neither applies, skip this entirely. Don't invent a bigger picture just to fill the slot.
+
+   When it does apply, add one line stating both the umbrella *and* this PR's relevance to it — what role this PR plays, not just that a parent exists. E.g. `Part of the message-templates lifecycle rework (ENG-300) — this is the validation slice; provider-sync changes ship separately.`
+
+5. **Write the summary.** Always state *what problem it solves* — the user-facing or system-level pain that goes away — followed (if needed) by a brief note on the change itself. Lead with the "why", not the "what". Keep it to one sentence when possible, two if the problem and the fix genuinely need to be separated.
+
+6. **Output the message** in this shape, ready to paste into Slack:
 
    ```
    [<label>] PR ready for review: *<PR title>*
@@ -30,10 +38,11 @@ Draft a short Slack-style message announcing that a PR is ready for review.
 
    <summary — leads with the problem it solves>
 
-   Linear: <Linear URL>   ← omit this line if there's no Linear issue
+   Part of: <bigger picture + this PR's role>   ← omit if there isn't one
+   Linear: <Linear URL>                          ← omit if there's no Linear issue
    ```
 
-6. **Show the message** to the user in a code block so it's easy to copy. Don't post it anywhere — the user will paste it themselves.
+7. **Show the message** to the user in a code block so it's easy to copy. Don't post it anywhere — the user will paste it themselves.
 
 ## Tone
 
