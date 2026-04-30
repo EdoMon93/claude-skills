@@ -11,7 +11,7 @@ Draft a short Slack-style message announcing that a PR is ready for review.
 
 1. **Find the PR.** Run `gh pr view --json url,title,body,headRefName` on the current branch. If there's no PR for this branch, ask the user for a PR URL. Ask the user when in doubt.
 
-2. **Find the Linear issue link.** Look in the PR body and branch name for a Linear issue reference (e.g. `ENG-324`, or a `linear.app/...` URL). If none is found, ask the user whether a Linear issue exists; if it does, ask for the URL/ID; if not, skip the line.
+2. **Find the Linear issue.** Look in the PR body and branch name for a Linear issue reference (e.g. `ENG-324`, or a `linear.app/...` URL). If none is found, ask the user whether a Linear issue exists; if it does, ask for the URL/ID; if not, skip it. When an issue is found, fetch it via `mcp__claude_ai_Linear__get_issue` so you have its **title** (used as the headline in step 6) and metadata (used in step 4).
 
 3. **Classify the PR.** Pick a single short label that tells a skimmer at a glance what kind of change this is. Infer it from:
    - The conventional-commit prefix in the PR title (`fix:` → Bug fix, `feat:` → Feature, `refactor:` → Refactor, `chore:` → Chore, `docs:` → Docs, `test:` → Tests, `perf:` → Performance).
@@ -33,7 +33,7 @@ Draft a short Slack-style message announcing that a PR is ready for review.
 6. **Output the message** in this shape, ready to paste into Slack:
 
    ```
-   [<label>] PR ready for review: *<PR title>*
+   [<label>] PR ready for review: <headline>
    <PR URL>
 
    <summary — leads with the problem it solves>
@@ -41,6 +41,10 @@ Draft a short Slack-style message announcing that a PR is ready for review.
    Part of: <bigger picture + this PR's role>   ← omit if there isn't one
    Linear: <Linear URL>                          ← omit if there's no Linear issue
    ```
+
+   **Headline source:** prefer the Linear issue title when one is available — it's usually phrased in user/product terms and is more readable than a conventional-commit-style PR title. Fall back to the PR title only when there's no Linear issue. (Strip any leading `[ENG-NNN]` prefix from the Linear title to avoid duplicating the ID, since the Linear link already carries it.)
+
+   **Plain text only.** Do not wrap anything in `*`, `**`, or `_` — output plain text. The user pastes this into Slack and inline markdown is not reliably rendered there.
 
 7. **Show the message** to the user in a code block so it's easy to copy. Don't post it anywhere — the user will paste it themselves.
 
@@ -50,12 +54,12 @@ Professional but friendly. Concise. No marketing-speak, no "excited to share", n
 
 ## Example
 
-Input: PR titled "fix(message-templates): validate requested_category presence" on branch `edo/eng-324-message-template-schema`, body mentions ENG-324.
+Input: PR titled "fix(message-templates): validate requested_category presence" on branch `edo/eng-324-message-template-schema`, body mentions ENG-324. Linear issue ENG-324 is titled "Message template schema & model semantics".
 
-Output:
+Output (uses the Linear title as the headline, not the PR title):
 
 ```
-[Bug fix] PR ready for review: *fix(message-templates): validate requested_category presence*
+[Bug fix] PR ready for review: Message template schema & model semantics
 https://github.com/cubbo/engage-backend/pull/1234
 
 Templates could be saved with invalid categories, which then failed silently downstream when sent to Gupshup; this adds presence + inclusion validation for `requested_category` so bad values can't be persisted in the first place.
