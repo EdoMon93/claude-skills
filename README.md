@@ -8,6 +8,7 @@ Personal collection of [Claude Code](https://docs.anthropic.com/en/docs/claude-c
 |-------|-------------|
 | [address-pr-comments](address-pr-comments/SKILL.md) | Interactive workflow for addressing GitHub PR review comments one by one |
 | [address-issues](address-issues/SKILL.md) | Process multiple items that need individual decisions sequentially |
+| [triage-sentry-issue](triage-sentry-issue/SKILL.md) | Read-only deep analysis of a Sentry issue — severity, root-cause hypothesis, dup/noise check; reports in chat, no code changes |
 
 ## Setup
 
