@@ -20,6 +20,7 @@ digraph review_pr {
 
     fetch [label="Fetch PR details + diff"];
     read [label="Read changed files in full"];
+    explore [label="Explore surrounding codebase:\ncallers, contracts, siblings"];
     review [label="Analyze against checklist"];
     classify [label="Classify findings by criticality"];
     present [label="Present grouped summary"];
@@ -35,7 +36,7 @@ digraph review_pr {
     review_action [label="Ask review action:\ncomment / request changes / approve"];
     submit [label="Submit pending review"];
 
-    fetch -> read -> review -> classify -> present -> clean;
+    fetch -> read -> explore -> review -> classify -> present -> clean;
     clean -> approve_pr [label="yes"];
     clean -> pending [label="no"];
     pending -> ask_mode;
@@ -70,6 +71,16 @@ Also read CLAUDE.md if present for project-specific conventions to check against
 ## Step 2: Analyze
 
 **Read every changed file in full** (not just diff hunks) to understand surrounding context.
+
+### Explore beyond the diff
+
+The diff and changed files alone can't answer the Ripple Effects, Deployability, Architecture, or Conventions questions below — those require looking at code the PR *doesn't* touch. Before judging, explore enough to answer them for these specific changes:
+
+- **Callers & consumers** — grep for every changed public symbol, route, job, event name, or JSON/queue shape. Trace at least one level of dependents.
+- **Lingering references** — for renamed/removed symbols, confirm nothing still calls the old path.
+- **Conventions & duplication** — find 1-2 sibling implementations of the same pattern to calibrate "is this consistent / is this already solved elsewhere."
+
+Scope it to what these changes touch — don't read the whole repo. For large PRs, dispatch parallel explore agents instead of searching serially.
 
 ### Review Checklist
 
