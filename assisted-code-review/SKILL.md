@@ -82,7 +82,14 @@ The diff and changed files alone can't answer the Ripple Effects, Deployability,
 
 Scope it to what these changes touch — don't read the whole repo. For large PRs, dispatch parallel explore agents instead of searching serially.
 
+**Let confidence drive how much you dig — don't drop findings you're unsure about.** A subtle, high-impact bug is exactly the kind you won't be sure of on first read; staying silent to keep the report clean is the wrong trade. Uncertainty about a *fact* — does this break callers? is this nil-safe? — is a signal to investigate until you know, not to discard. If you genuinely can't resolve it (needs running, or hinges on intent only the author knows), surface it as an open question ("I couldn't verify X — is this intentional?") rather than asserting or dropping it. Only downgrade to Nit when the facts are clear and it's genuinely a matter of taste.
+
 ### Review Checklist
+
+**Intent & scope:**
+- Does the change actually deliver what the PR description / linked issue claims?
+- Does it do anything *beyond* what it claims — surprising extra behavior, scope creep? Flag deviations so the author can confirm they're intentional.
+- Is the requirement itself sound, or is the PR faithfully implementing a flawed plan? Say so if so.
 
 **Correctness:**
 - Logic errors, bugs, off-by-ones?
@@ -110,11 +117,12 @@ Scope it to what these changes touch — don't read the whole repo. For large PR
 - Sound design decisions?
 - Separation of concerns?
 - DRY without premature abstraction?
+- Speculative or unused code? grep for actual usage — flag dead code and "just in case" abstractions (YAGNI).
 
 **Testing:**
-- Are changes tested?
-- Edge cases covered?
-- Assertions meaningful (not just "no error")?
+- Are changes tested? Edge cases covered?
+- Do tests assert real behavior — would they actually catch a regression — or just that nothing threw?
+- Are they coupled to implementation details that'd break on a harmless refactor?
 
 **Ripple Effects (2nd/3rd order consequences):**
 - What else in the codebase depends on the changed code?
@@ -132,6 +140,10 @@ Scope it to what these changes touch — don't read the whole repo. For large PR
 **Conventions:**
 - Project rules from CLAUDE.md followed?
 - Naming, style, patterns consistent with codebase?
+
+**Comments & docs:**
+- Do comments/docstrings match what the code actually does, or will they rot?
+- Flag comments that just restate the code; value "why" over "what".
 
 ### For Each Finding
 
@@ -329,6 +341,7 @@ GitHub comments are posted under the user's name. Keep them:
 |---|---|
 | Post without user approving each comment | Never — approval is mandatory |
 | Read only diff hunks, not full files | Read full files for surrounding context |
+| Drop a finding because you're unsure it's real | Dig until you know, or flag it as an open question — don't stay silent |
 | Classify a security issue below Critical | Security issues are always Critical |
 | Skip the summary | Always show classified overview first |
 | Submit review before user chooses the action | Always ask: comment, request changes, or approve |
