@@ -94,15 +94,22 @@ For each comment:
 
 ### 4a. Show Context
 
-Display:
+One comment per turn — never batch several comments into one explanation or one dialog;
+batched prose goes unread and the questions detach from their context.
+
+Display, in plain text:
 - Author and timestamp
 - Comment body (full text)
 - If inline: file path, line number, and the diff hunk
 - Read the current version of the file around the relevant lines using the Read tool
+- A plain-language explanation of what the comment means and what risk/improvement it points at, plus your recommendation
 
 ### 4b. Analyze and Propose
 
-Read the relevant code, understand the comment, and propose approaches. Use AskUserQuestion with dynamically generated options based on your analysis:
+In the same turn, right after the explanation, present the decision as a SINGLE-question
+AskUserQuestion (the dialog renders below the prose, so no acknowledgment is needed in
+between). Don't inline the options as prose ("implement / skip / disagree?") — use the
+structured picker. Generate the options dynamically based on your analysis:
 
 **Always include these base options:**
 - "Skip" — acknowledge but make no code change
@@ -216,3 +223,4 @@ If yes: `git push`
 | Committing multiple comments in one commit | One commit per comment, always |
 | Not reading current file state | Always Read the file before proposing changes |
 | Posting reply before user approves text | Always ask first via AskUserQuestion |
+| Batching several comments into one explanation or one multi-question dialog | One comment per turn: plain-text explanation, then a single-question picker in the same turn |

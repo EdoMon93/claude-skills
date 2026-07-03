@@ -59,16 +59,23 @@ For each item:
 
 ### 2a. Show context
 
-Present the item with enough context for the user to make a decision:
+Present ONE item per turn in plain text — never batch several items into one explanation
+or one multi-question dialog. Batched prose gets skimmed past and the questions detach from
+the item they belong to.
+
+Give enough context for the user to make a decision:
 - What the item is about
 - Relevant code or files (read them first — don't propose changes to code you haven't read)
-- Why it matters or what the impact is
+- Why it matters or what the impact is, plus your recommendation
 
 Format: `**[N/total] item title or summary**` followed by context.
 
 ### 2b. Propose approaches
 
-Analyze the item and generate concrete options using AskUserQuestion. Tailor options to the specific item — don't use a generic template.
+In the same turn, right after the explanation, present the decision as a SINGLE-question
+AskUserQuestion. The dialog renders below your prose, so the explanation stays visible and
+no separate acknowledgment turn is needed. Don't inline the options as prose ("implement /
+skip / discuss?") — use the structured picker. Tailor options to the specific item — don't use a generic template.
 
 **Always include:**
 - One or more implementation/action options (mark the recommended one)
@@ -125,3 +132,4 @@ If there are uncommitted changes, mention it.
 - **User decides.** Never implement without the user choosing an approach. The whole point is interactive decision-making.
 - **Keep momentum.** Be concise in your analysis. The user wants to move through items efficiently, not read essays for each one.
 - **Adapt the options.** Don't force-fit the same option structure on every item. A yes/no question needs two options, not five. A complex architectural decision might need several.
+- **Explanation and picker in one turn, per item.** Write the plain-text explanation, then the single-question AskUserQuestion in the same turn — the prose stays visible above the dialog. Never inline options as prose instead of the picker, and never bundle multiple items or questions into one dialog.
