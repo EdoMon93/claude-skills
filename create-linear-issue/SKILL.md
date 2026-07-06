@@ -153,16 +153,16 @@ Split the source content into three buckets. The first two are **required conten
 
 **If the source contains design decisions, multi-option discussions, edge cases, acceptance criteria, or implementation steps, drop them.** Briefly tell the user what you dropped so they're not surprised the issue is shorter than the source. The implementer rediscovers what's relevant once they pick a direction.
 
-Present the extraction as a regular text message:
+Present the extraction and ask for verification in a single plain-text message that **ends your turn** — do NOT use `AskUserQuestion` here, and do NOT put the extraction in the same turn as any tool call (see "Content-bearing confirmations" in Common Mistakes):
 
 ```
 Here's what I extracted:
 
 **Problem**
-<2-4 sentences>
+<brief and concise paragraph>
 
 **Impact**
-<2-4 sentences>
+<brief and concise paragraph>
 
 **Direction** (optional)
 <1 paragraph, or "Leaving as TBD placeholder">
@@ -171,27 +171,13 @@ Dropped from the source (belongs in How, owned by the implementer):
 - <design decision the source made>
 - <multi-option discussion>
 - <step-by-step plan or edge case>
+
+Does this match? Reply "looks right" to continue, ask for the source quotes behind any bullet, or tell me what to change.
 ```
 
-If nothing was dropped, omit that last block.
+If nothing was dropped, omit that block.
 
-Then ask for verification — **not** a walk-through, just a sanity check:
-
-```
-AskUserQuestion(questions: [{
-  question: "Does this extraction match?",
-  header: "Verify",
-  multiSelect: false,
-  options: [
-    { label: "Looks right (Recommended)", description: "Continue with this extraction" },
-    { label: "Show source quotes", description: "See which lines from the source backed each bullet, then decide" }
-  ]
-}])
-```
-
-If "Show source quotes", re-present the extraction with the supporting source line(s) under each bullet (or `(your hint, not in source)` for items the user filled in during the gap-fill prompt). Then proceed to Step 4 — the user can interrupt in freeform if a quote reveals something to revise.
-
-If "Looks right", proceed straight to Step 4.
+The verification is a sanity check, **not** a walk-through. If the user asks for quotes, re-present the extraction with the supporting source line(s) under each bullet (or `(your hint, not in source)` for items the user filled in during the gap-fill prompt), ending the turn the same way. Proceed to Step 4 only on an affirmative reply; fold any correction in and re-present.
 
 
 ## Step 4: Evaluate scope
@@ -202,7 +188,7 @@ Evaluate whether to split. Propose a split if any of these apply:
 - Natural dependency layers (e.g., a foundation piece that must land before a downstream one can start)
 - Two or more separable business milestones that could each ship independently
 
-**If a split is warranted**, output the proposal as text first:
+**If a split is warranted**, present the proposal and the question together in one plain-text message that **ends your turn** — no `AskUserQuestion`, no tool calls in the same turn:
 
 ```
 This is large enough to split into smaller issues:
@@ -212,21 +198,11 @@ This is large enough to split into smaller issues:
 3. **<sub-title-3>** — <what it accomplishes> (parallel to #2)
 
 Dependencies: #2 depends on #1 because <reason>. #3 is independent.
+
+Split it this way (recommended), keep it as one issue, or tell me how you'd cut it differently.
 ```
 
-Then ask:
-
-```
-AskUserQuestion(questions: [{
-  question: "Split into sub-issues?",
-  header: "Scope",
-  multiSelect: false,
-  options: [
-    { label: "Split (Recommended)", description: "Parent + sub-issues with blocker relations" },
-    { label: "Keep as one", description: "Single issue covering everything" }
-  ]
-}])
-```
+Proceed only once the user has answered.
 
 If a split isn't warranted, skip this step entirely — don't create noise by asking about splits that don't make sense.
 
@@ -258,30 +234,20 @@ Before any Linear write, show a **compact summary** of what will be created — 
 3. <title> — <one-line summary> (parallel to #2)
 ```
 
-Then confirm:
+End the summary message with the confirmation question, in the same turn-ending plain-text message — no `AskUserQuestion`:
 
 ```
-AskUserQuestion(questions: [{
-  question: "Create these in Linear?",
-  header: "Confirm",
-  multiSelect: false,
-  options: [
-    { label: "Create them (Recommended)", description: "Write to Linear now" },
-    { label: "Show full markdown first", description: "Preview the rendered body before writing" }
-  ]
-}])
+Create these in Linear? Reply "create" to write them now, "show markdown" to preview the full rendered bodies first, or tell me what to tweak.
 ```
 
-If "Show full markdown first", render the full description(s) — for a single issue, the body using the template from Step 6; for a split, the parent body followed by each sub-issue body. Then proceed to Step 6 (the writes happen without a second prompt — the user can interrupt in freeform if they see something to change).
+If the user asks for the markdown, render the full description(s) — for a single issue, the body using the template from Step 6; for a split, the parent body followed by each sub-issue body — and end the turn asking for confirmation again.
 
-If "Create them", proceed straight to Step 6.
-
-Do not add "Tweak" or "Cancel" options — both are no-ops in `AskUserQuestion` because the user can always reply in freeform to either request.
+**The Linear write is hard-gated on an explicit affirmative reply.** Never create issues off an ambiguous response; when in doubt, ask again.
 
 **Conciseness rules for the descriptions you'll write in Step 6:**
 
-- **Problem:** 2-4 sentences. Concrete: what's broken/absent, who feels it, when it bites. No solution language.
-- **Impact:** 2-4 sentences. What changes once this ships — for users, ops, the business, the system. Not a list of system behaviors (that's How content).
+- **Problem:** a brief and concise paragraph. Concrete: what's broken/absent, who feels it, when it bites. No solution language.
+- **Impact:** a brief and concise paragraph. What changes once this ships — for users, ops, the business, the system. Not a list of system behaviors (that's How content).
 - **How:** placeholder by default. One paragraph max if the direction is already decided. **Never** a step-by-step plan, even if the source provided one.
 
 ## Step 6: Create in Linear
@@ -308,10 +274,10 @@ Apply the conciseness rules from Step 5.
 
 ```
 ## Problem
-<2-4 sentences: what's broken, missing, or painful today; who feels it; when it bites>
+<brief and concise paragraph: what's broken, missing, or painful today; who feels it; when it bites>
 
 ## Impact
-<2-4 sentences: what becomes possible/better once this ships; who benefits; how we'd recognize success>
+<brief and concise paragraph: what becomes possible/better once this ships; who benefits; how we'd recognize success>
 
 ## How
 _TBD — fill in once a direction is chosen._
@@ -328,10 +294,10 @@ If the session has clearly decided a direction, replace the placeholder with **o
 <parent-issue-id> aims to <1-2 sentence summary of the overall goal>. This sub-issue covers <where this piece fits>.
 
 ## Problem
-<the slice of the broader problem this sub-issue addresses>
+<brief and concise paragraph: the slice of the broader problem this sub-issue addresses>
 
 ## Impact
-<what this specific sub-issue makes possible/better>
+<brief and concise paragraph: what this specific sub-issue makes possible/better>
 
 ## How
 _TBD — fill in once a direction is chosen._
@@ -395,9 +361,9 @@ End with a one-liner that offers both ways to iterate: "Refine directly in Linea
 | 0. Preflight | Linear `list_teams` | Auth verified, ENG `team_id` cached |
 | 1. Locate source | `Read` (if file) | Raw source content |
 | 2. Infer parent | `git branch --show-current`, Linear `get_issue`/`list_issues` | Parent candidate (or none) |
-| 3. Extract & verify | `AskUserQuestion` | Problem + Impact + optional Direction, user-confirmed |
-| 4. Scope | `AskUserQuestion` (only if split warranted) | Split or keep |
-| 5. Summary + confirm | `AskUserQuestion` | Go/tweak |
+| 3. Extract & verify | turn-ending text, freeform reply | Problem + Impact + optional Direction, user-confirmed |
+| 4. Scope | turn-ending text, freeform reply (only if split warranted) | Split or keep |
+| 5. Summary + confirm | turn-ending text, freeform reply | Go/tweak |
 | 6. Create | Linear MCP `save_issue` | Issue(s) + blocker relations |
 | 7. Report | — | Links |
 
@@ -415,9 +381,9 @@ End with a one-liner that offers both ways to iterate: "Refine directly in Linea
 - **Problem:** Source was a design doc that didn't explicitly state the problem, and you let the issue ship without one.
 - **Fix:** Ask the user. Problem is load-bearing — the implementer needs it to judge edge cases when the spec is silent. A short question is enough; don't drag the user through a workshop.
 
-### Putting markdown in `AskUserQuestion.question`
-- **Problem:** The `question` field strips markdown. Long explanations become unreadable.
-- **Fix:** All context and reasoning go in a regular text message immediately before the tool call. The tool only collects the choice.
+### Content-bearing confirmations via `AskUserQuestion`
+- **Problem:** Text emitted in the same turn as a tool call is not reliably rendered (the VSCode extension drops it), so "print the draft, then call `AskUserQuestion`" shows the user a bare Yes/No dialog with no draft to judge. And the drafts (extraction, split proposal, summary) are far too long for the `question` field or option labels/previews.
+- **Fix:** Steps 3, 4, and 5 never use `AskUserQuestion`. Present the content AND the question in one plain-text message that ends the turn; the user replies freeform. Reserve `AskUserQuestion` for short, self-contained choices where the option labels carry all the context (Step 2 parent picking).
 
 ### Listing sub-issues in the parent description
 - **Problem:** Writing a "Sub-issues" section (or bulleted links) into the parent body. Linear already shows the hierarchy in its UI, so the list is redundant, and it goes stale the moment the split changes.
