@@ -116,7 +116,7 @@ Check these signals in order and stop at the first hit:
 4. **Recent conversation mentions a Linear issue ID** in a way that implies this work belongs under it
 5. **The source reads like a piece of a larger initiative** — phrases like "as part of", "step toward", "building on", "first of several", or a narrow scope that clearly implies a broader effort (e.g., "add the webhook endpoint" when no broader "Gorgias integration" context is given). This is softer than signals 1-4, but strong enough to warrant a question.
 
-**For strong signals (1-4)**, fetch the candidate via `mcp__*_Linear__get_issue(issue_id: "ENG-<N>")` to confirm it exists and pull its title, then ask the user with a 2-option form (`Yes` / `No, top-level`).
+**For strong signals (1-4)**, fetch the candidate via `mcp__*_Linear__get_issue(issue_id: "ENG-<N>")` to confirm it exists and pull its title, then confirm with the user in a turn-ending plain-text question ("Nest this under ENG-<N>: <title>? Or top-level?").
 
 **For weak signals (5) — or if the source's scope feels too narrow to stand alone —** search Linear first and present candidates:
 
@@ -124,19 +124,14 @@ Check these signals in order and stop at the first hit:
 mcp__*_Linear__list_issues(query: "<relevant keywords from source>", team_id: "<ENG team_id>", limit: 5)
 ```
 
-Either way, the question is one `AskUserQuestion`. The weak-signal form (more options) looks like this; for strong signals, drop `Different parent` and simplify the labels:
+Either way, ask in one turn-ending plain-text message — never `AskUserQuestion` (see Common Mistakes). The weak-signal form looks like this; for strong signals, name the single candidate instead of listing:
 
 ```
-AskUserQuestion(questions: [{
-  question: "This reads like part of a larger effort. Pick a parent?",
-  header: "Parent?",
-  multiSelect: false,
-  options: [
-    { label: "ENG-<N>: <title>", description: "Nest under this candidate" },
-    { label: "Different parent", description: "I'll paste the URL/ID" },
-    { label: "Top-level", description: "No parent, create standalone" }
-  ]
-}])
+This reads like part of a larger effort. Pick a parent?
+
+1. ENG-<N>: <title> — nest under this candidate
+2. Different parent — paste the URL/ID
+3. Top-level — no parent, create standalone
 ```
 
 If no candidate is found and the source reads as a self-contained effort (signal 5 does not fire), default to top-level with no question — just note "No parent inferred; creating top-level." and continue.
@@ -153,7 +148,7 @@ Split the source content into three buckets. The first two are **required conten
 
 **If the source contains design decisions, multi-option discussions, edge cases, acceptance criteria, or implementation steps, drop them.** Briefly tell the user what you dropped so they're not surprised the issue is shorter than the source. The implementer rediscovers what's relevant once they pick a direction.
 
-Present the extraction and ask for verification in a single plain-text message that **ends your turn** — do NOT use `AskUserQuestion` here, and do NOT put the extraction in the same turn as any tool call (see "Content-bearing confirmations" in Common Mistakes):
+Present the extraction and ask for verification in a single plain-text message that **ends your turn** — do NOT put the extraction in the same turn as any tool call (see "Any question via `AskUserQuestion`" in Common Mistakes):
 
 ```
 Here's what I extracted:
@@ -381,9 +376,9 @@ End with a one-liner that offers both ways to iterate: "Refine directly in Linea
 - **Problem:** Source was a design doc that didn't explicitly state the problem, and you let the issue ship without one.
 - **Fix:** Ask the user. Problem is load-bearing — the implementer needs it to judge edge cases when the spec is silent. A short question is enough; don't drag the user through a workshop.
 
-### Content-bearing confirmations via `AskUserQuestion`
-- **Problem:** Text emitted in the same turn as a tool call is not reliably rendered (the VSCode extension drops it), so "print the draft, then call `AskUserQuestion`" shows the user a bare Yes/No dialog with no draft to judge. And the drafts (extraction, split proposal, summary) are far too long for the `question` field or option labels/previews.
-- **Fix:** Steps 3, 4, and 5 never use `AskUserQuestion`. Present the content AND the question in one plain-text message that ends the turn; the user replies freeform. Reserve `AskUserQuestion` for short, self-contained choices where the option labels carry all the context (Step 2 parent picking).
+### Any question via `AskUserQuestion`
+- **Problem:** Text emitted in the same turn as a tool call is not reliably rendered (the VSCode extension drops it), so "print the context, then call `AskUserQuestion`" shows the user a bare dialog with no explanation to judge by. This bit repeatedly even for "short" choices like parent picking, so the tool is banned from this skill entirely.
+- **Fix:** Never call `AskUserQuestion`. Every question — parent confirmation (Step 2), extraction verification (Step 3), split proposal (Step 4), creation summary (Step 5) — is one plain-text message with the content and the question together, ending the turn; the user replies freeform.
 
 ### Listing sub-issues in the parent description
 - **Problem:** Writing a "Sub-issues" section (or bulleted links) into the parent body. Linear already shows the hierarchy in its UI, so the list is redundant, and it goes stale the moment the split changes.

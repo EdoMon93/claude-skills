@@ -56,7 +56,7 @@ digraph review_pr {
 
 ## Step 1: Fetch PR
 
-Accept PR URL or number. If not provided, ask via AskUserQuestion.
+Accept PR URL or number. If not provided, ask in plain text and end the turn. (Never use `AskUserQuestion` anywhere in this skill — the interactive dialog swallows any explanation written before it in the user's client. Every question is a turn-ending plain-text message with numbered options; the user replies freeform.)
 
 ```bash
 # PR metadata
@@ -223,14 +223,14 @@ gh api repos/{owner}/{repo}/pulls/{number}/reviews --method POST -f body=""
 
 Save the review's `node_id` (e.g., `PRR_kw...`) from the response — you'll need it for GraphQL mutations.
 
-Then ask via AskUserQuestion: **"Want to go through these one by one before I post the review?"**
+Then ask in a turn-ending plain-text message: **"Want to go through these one by one before I post the review, or post all as proposed?"**
 
 ### If Yes — Interactive Flow
 
 Process each finding, ordered by criticality (critical first). For each:
 
 1. Show: file path, line number, code snippet from the diff, and proposed GitHub comment text
-2. Ask via AskUserQuestion with options:
+2. In the same message, end the turn with the options:
    - **Approve** — post this comment to the pending review immediately
    - **Edit** — user provides modified comment text; show updated version, confirm, then post
    - **Skip** — exclude from review, move to next
@@ -285,7 +285,7 @@ Post all comments to the pending review at once using the same approach (MCP or 
 
 ## Step 5: Submit Review
 
-After all comments are posted (or user says stop), ask via AskUserQuestion what review action to set:
+After all comments are posted (or user says stop), ask in a turn-ending plain-text message what review action to set:
 - **Comment** — neutral feedback, non-blocking
 - **Request changes** — blocking review
 - **Approve** — with optional notes

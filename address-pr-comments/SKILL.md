@@ -35,11 +35,7 @@ digraph address_pr {
 
 ## Step 1: Get PR URL
 
-Accept PR URL as skill argument. If not provided, ask:
-
-```
-AskUserQuestion: "What's the PR URL?"
-```
+Accept PR URL as skill argument. If not provided, ask in plain text ("What's the PR URL?") and end the turn.
 
 Extract owner, repo, and PR number from the URL.
 
@@ -106,10 +102,10 @@ Display, in plain text:
 
 ### 4b. Analyze and Propose
 
-In the same turn, right after the explanation, present the decision as a SINGLE-question
-AskUserQuestion (the dialog renders below the prose, so no acknowledgment is needed in
-between). Don't inline the options as prose ("implement / skip / disagree?") — use the
-structured picker. Generate the options dynamically based on your analysis:
+In the same message, right after the explanation, present the decision as a short numbered
+list of options and END THE TURN — the user replies freeform (a number or words). Never use
+`AskUserQuestion`: the interactive dialog swallows any explanation written before it, so the
+user gets a bare choice with no context. Generate the options dynamically based on your analysis:
 
 **Always include these base options:**
 - "Skip" — acknowledge but make no code change
@@ -156,7 +152,7 @@ If user picks an implementation option:
 
 ### 4f. Reply on GitHub
 
-After handling the comment, ask how to reply using AskUserQuestion:
+After handling the comment, show the drafted reply text in full and ask how to proceed, all in one turn-ending plain-text message (draft first, then the options — never `AskUserQuestion`):
 
 **Generate reply options based on what happened:**
 
@@ -197,12 +193,7 @@ Addressed N/M comments:
 - Z disagreed
 ```
 
-Then ask whether to push:
-```
-AskUserQuestion: "Push commits to remote?"
-- Yes, push now
-- No, I'll push later
-```
+Then ask in the same turn-ending message: "Push commits to remote?"
 
 If yes: `git push`
 
@@ -222,5 +213,6 @@ If yes: `git push`
 | Missing pagination on large PRs | Always use `--paginate` with `gh api` |
 | Committing multiple comments in one commit | One commit per comment, always |
 | Not reading current file state | Always Read the file before proposing changes |
-| Posting reply before user approves text | Always ask first via AskUserQuestion |
-| Batching several comments into one explanation or one multi-question dialog | One comment per turn: plain-text explanation, then a single-question picker in the same turn |
+| Posting reply before user approves text | Always show the draft and get an explicit go-ahead first |
+| Batching several comments into one explanation | One comment per turn: plain-text explanation, then numbered options, end the turn |
+| Using `AskUserQuestion` for any decision | The dialog swallows preceding prose in the user's client — always plain-text numbered options ending the turn |

@@ -72,10 +72,10 @@ Format: `**[N/total] item title or summary**` followed by context.
 
 ### 2b. Propose approaches
 
-In the same turn, right after the explanation, present the decision as a SINGLE-question
-AskUserQuestion. The dialog renders below your prose, so the explanation stays visible and
-no separate acknowledgment turn is needed. Don't inline the options as prose ("implement /
-skip / discuss?") — use the structured picker. Tailor options to the specific item — don't use a generic template.
+In the same message, right after the explanation, present the decision as a short numbered
+list of options and END THE TURN — the user replies freeform (a number or words). Never use
+`AskUserQuestion`: the interactive dialog swallows any explanation written before it, so the
+user gets a bare choice with no context. Tailor options to the specific item — don't use a generic template.
 
 **Always include:**
 - One or more implementation/action options (mark the recommended one)
@@ -90,7 +90,7 @@ Example:
 4. Discuss
 ```
 
-Keep options concise. If there's an obvious best choice, say why it's recommended in a short line before the options.
+Keep options concise. If there's an obvious best choice, say why it's recommended in a short line before the options. The options list must be the last thing in the message — nothing after it, no tool calls in the same turn.
 
 ### 2c. Handle "Discuss"
 
@@ -100,12 +100,10 @@ If the user picks "Discuss": have a focused conversation about just this item. E
 
 If the user picks an action that involves changes:
 1. Make the changes
-2. If code was modified, ask whether to commit:
+2. If code was modified, ask whether to commit in a turn-ending plain-text message:
    ```
-   AskUserQuestion: "Commit this change?"
-   - Yes, commit: "[suggested commit message]"
-   - Yes, with a different message
-   - No, don't commit yet
+   Commit this change? Suggested message: "[suggested commit message]"
+   Reply "commit" to use it, give me a different message, or "not yet".
    ```
 3. If no code was modified (e.g., a decision was made, a question was answered), just note the outcome and move on.
 
@@ -132,4 +130,4 @@ If there are uncommitted changes, mention it.
 - **User decides.** Never implement without the user choosing an approach. The whole point is interactive decision-making.
 - **Keep momentum.** Be concise in your analysis. The user wants to move through items efficiently, not read essays for each one.
 - **Adapt the options.** Don't force-fit the same option structure on every item. A yes/no question needs two options, not five. A complex architectural decision might need several.
-- **Explanation and picker in one turn, per item.** Write the plain-text explanation, then the single-question AskUserQuestion in the same turn — the prose stays visible above the dialog. Never inline options as prose instead of the picker, and never bundle multiple items or questions into one dialog.
+- **Explanation and options in one turn-ending message, per item.** Write the plain-text explanation, then the numbered options, and end the turn. Never call `AskUserQuestion` — the interactive dialog swallows the explanation before it, leaving the user a context-free multiple choice. Never bundle multiple items into one message.
