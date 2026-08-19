@@ -15,6 +15,7 @@ Personal collection of [Claude Code](https://docs.anthropic.com/en/docs/claude-c
 | [onboard-issue](onboard-issue/SKILL.md) | Get up to speed on an issue before implementing — explore code, prior reports and prod, then align on the issue and ask what's genuinely undecided |
 | [grill-me](grill-me/SKILL.md) | Interview you relentlessly about a plan or design, resolving each decision-tree branch until shared understanding |
 | [implement-by-gated-commits](implement-by-gated-commits/SKILL.md) | Implement in tight collaboration with the user, gating progress on per-step commits |
+| [unslop](unslop/SKILL.md) | Cut AI tells from any writing and add human voice. Vendored verbatim from [cursor/plugins](https://github.com/cursor/plugins/blob/main/pstack/skills/unslop/SKILL.md) |
 
 ## Setup
 
