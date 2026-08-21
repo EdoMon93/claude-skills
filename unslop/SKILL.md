@@ -1,6 +1,6 @@
 ---
 name: unslop
-description: Cut AI tells from any writing. Must always apply.
+description: TRIGGER on your first response in any session, before drafting anything. Your default prose is hard to read, don't rely on your instincts or memory for this, use the skill guidance.
 ---
 
 # Unslop

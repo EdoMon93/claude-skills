@@ -1,6 +1,6 @@
 ---
 name: writing-code-comments
-description: Use on every task that writes or edits code. Must always apply.
+description: TRIGGER on your first response in any session, before any other work. Do not rely on your instincts or memory for this.
 ---
 
 Default to no comment. Well-named code already shows what it does, and a comment that restates it goes stale and makes the reader distrust every other comment in the file.
