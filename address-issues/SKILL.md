@@ -9,13 +9,6 @@ description: Use when processing multiple items that need individual decisions �
 
 Dumping multiple questions or decisions on a user all at once is overwhelming. Each item deserves its own context, analysis, and discussion. This skill enforces a sequential, interactive workflow: present one item, propose approaches, let the user decide (with discussion if needed), act on it, then move to the next.
 
-## When to use this
-
-- You have 2+ independent items that each need a user decision
-- You're about to ask the user multiple questions at once — use this instead
-- The user gives you a list of things to address (issues, TODOs, changes, review feedback)
-- You identify multiple things that need attention (e.g., from reading code, a spec, or a plan)
-
 ## Process
 
 ```dot
@@ -28,11 +21,9 @@ digraph address_issues {
     "User picks action" -> "Discuss" [label="discuss"];
     "Discuss" -> "Propose approaches";
     "User picks action" -> "Implement" [label="implement"];
-    "User picks action" -> "Skip" [label="skip"];
     "Implement" -> "Ask about commit" [label="if code changed"];
     "Implement" -> "Next?" [label="no code change"];
     "Ask about commit" -> "Next?";
-    "Skip" -> "Next?";
     "Next?" -> "Process next item" [label="more items"];
     "Next?" -> "Show summary" [label="done"];
 }
@@ -40,7 +31,7 @@ digraph address_issues {
 
 ## Step 1: Collect and present items
 
-Gather all items into a numbered list. Show the user a brief summary before starting:
+Gather all items into a numbered list. If a summary has not been shown, provide the user a brief summary before starting:
 
 ```
 Found N items to address:
@@ -59,38 +50,32 @@ For each item:
 
 ### 2a. Show context
 
-Present ONE item per turn in plain text — never batch several items into one explanation
-or one multi-question dialog. Batched prose gets skimmed past and the questions detach from
-the item they belong to.
+Present ONE item per turn, never batch several items into one explanation
+or one multi-question dialog.
 
 Give enough context for the user to make a decision:
 - What the item is about
-- Relevant code or files (read them first — don't propose changes to code you haven't read)
+- Relevant code or files and links to them if applicable (read them first, don't propose changes to code you haven't read)
 - Why it matters or what the impact is, plus your recommendation
+- If there's an obvious best choice, say why it's recommended
 
 Format: `**[N/total] item title or summary**` followed by context.
 
 ### 2b. Propose approaches
 
-In the same message, right after the explanation, present the decision as a short numbered
-list of options and END THE TURN — the user replies freeform (a number or words). Never use
-`AskUserQuestion`: the interactive dialog swallows any explanation written before it, so the
-user gets a bare choice with no context. Tailor options to the specific item — don't use a generic template.
+Explain the context and after the explanation, present the decision as a short numbered
+list of options and end the turn. Tailor options to the specific item, don't use a generic template.
 
 **Always include:**
 - One or more implementation/action options (mark the recommended one)
-- "Skip" — move on without action
-- "Discuss" — talk it through before deciding
+- "Discuss", provide additional context and talk it through before deciding
 
 Example:
 ```
 1. Use a guard clause here (Recommended)
 2. Extract to a helper method instead
-3. Skip
-4. Discuss
+3. Discuss
 ```
-
-Keep options concise. If there's an obvious best choice, say why it's recommended in a short line before the options. The options list must be the last thing in the message — nothing after it, no tool calls in the same turn.
 
 ### 2c. Handle "Discuss"
 
@@ -100,16 +85,11 @@ If the user picks "Discuss": have a focused conversation about just this item. E
 
 If the user picks an action that involves changes:
 1. Make the changes
-2. If code was modified, ask whether to commit in a turn-ending plain-text message:
+2. If code was modified, ask whether to commit:
    ```
    Commit this change? Suggested message: "[suggested commit message]"
-   Reply "commit" to use it, give me a different message, or "not yet".
    ```
-3. If no code was modified (e.g., a decision was made, a question was answered), just note the outcome and move on.
-
-### 2e. Skip
-
-Note it was skipped and move to the next item. No judgment — skipping is a valid choice.
+3. If no code was modified (e.g., a decision was made, a question was answered), just move on.
 
 ## Step 3: Summary
 
@@ -125,9 +105,8 @@ If there are uncommitted changes, mention it.
 
 ## Important principles
 
-- **One at a time.** Never jump ahead or batch items together, even if they seem related. The user can always say "these next 3 are the same, just do them all" — but that's their call.
+- **One at a time.** Never jump ahead or batch items together, even if they seem related. The user can always say "these next 3 are the same, just do them all", but that's their call.
 - **Read before proposing.** Always read relevant code/files before suggesting changes.
 - **User decides.** Never implement without the user choosing an approach. The whole point is interactive decision-making.
 - **Keep momentum.** Be concise in your analysis. The user wants to move through items efficiently, not read essays for each one.
 - **Adapt the options.** Don't force-fit the same option structure on every item. A yes/no question needs two options, not five. A complex architectural decision might need several.
-- **Explanation and options in one turn-ending message, per item.** Write the plain-text explanation, then the numbered options, and end the turn. Never call `AskUserQuestion` — the interactive dialog swallows the explanation before it, leaving the user a context-free multiple choice. Never bundle multiple items into one message.
