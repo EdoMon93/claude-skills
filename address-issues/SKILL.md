@@ -63,19 +63,20 @@ Format: `**[N/total] item title or summary**` followed by context.
 
 ### 2b. Propose approaches
 
-Explain the context and after the explanation, present the decision as a short numbered
-list of options and end the turn. Tailor options to the specific item, don't use a generic template.
+Use the best available user-facing tool for the content:
+- Prefer interactive question tools for decisions.
+- Use prose, tables, or visuals according to what makes the information clearest.
+- Fall back to a numbered list for decisions when no suitable tool is available.
+
+Choose by capability, not hardcoded tool names.
+
+Present one item at a time, with enough context to decide. Make questions self-contained, mark the recommended option, and include "Discuss". Avoid repeating the same question in both the tool and chat.
+
+Wait for the user's answer before acting or advancing. A question tool returning without an answer leaves the decision pending.
 
 **Always include:**
 - One or more implementation/action options (mark the recommended one)
 - "Discuss", provide additional context and talk it through before deciding
-
-Example:
-```
-1. Use a guard clause here (Recommended)
-2. Extract to a helper method instead
-3. Discuss
-```
 
 ### 2c. Handle "Discuss"
 
