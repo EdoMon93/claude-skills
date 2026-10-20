@@ -35,7 +35,7 @@ digraph address_pr {
 
 ## Step 1: Get PR URL
 
-Accept PR URL as skill argument. If not provided, ask in plain text ("What's the PR URL?") and end the turn.
+Accept PR URL as skill argument. If not provided, ask "What's the PR URL?" and wait for the answer.
 
 Extract owner, repo, and PR number from the URL.
 
@@ -93,7 +93,7 @@ For each comment:
 One comment per turn — never batch several comments into one explanation or one dialog;
 batched prose goes unread and the questions detach from their context.
 
-Display, in plain text:
+Display:
 - Author and timestamp
 - Comment body (full text)
 - If inline: file path, line number, and the diff hunk
@@ -102,10 +102,8 @@ Display, in plain text:
 
 ### 4b. Analyze and Propose
 
-In the same message, right after the explanation, present the decision as a short numbered
-list of options and END THE TURN — the user replies freeform (a number or words). Never use
-`AskUserQuestion`: the interactive dialog swallows any explanation written before it, so the
-user gets a bare choice with no context. Generate the options dynamically based on your analysis:
+After the explanation, ask the user to choose an option and wait for the answer.
+Generate the options dynamically based on your analysis:
 
 **Always include these base options:**
 - "Skip" — acknowledge but make no code change
@@ -152,7 +150,7 @@ If user picks an implementation option:
 
 ### 4f. Reply on GitHub
 
-After handling the comment, show the drafted reply text in full and ask how to proceed, all in one turn-ending plain-text message (draft first, then the options — never `AskUserQuestion`):
+After handling the comment, show the drafted reply text in full, ask how to proceed, and wait for the answer:
 
 **Generate reply options based on what happened:**
 
@@ -193,7 +191,7 @@ Addressed N/M comments:
 - Z disagreed
 ```
 
-Then ask in the same turn-ending message: "Push commits to remote?"
+Then ask "Push commits to remote?" and wait for the answer.
 
 If yes: `git push`
 
@@ -214,5 +212,4 @@ If yes: `git push`
 | Committing multiple comments in one commit | One commit per comment, always |
 | Not reading current file state | Always Read the file before proposing changes |
 | Posting reply before user approves text | Always show the draft and get an explicit go-ahead first |
-| Batching several comments into one explanation | One comment per turn: plain-text explanation, then numbered options, end the turn |
-| Using `AskUserQuestion` for any decision | The dialog swallows preceding prose in the user's client — always plain-text numbered options ending the turn |
+| Batching several comments into one explanation | One comment per turn: explain, ask the user to choose an option, and wait for the answer |

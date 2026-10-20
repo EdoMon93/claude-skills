@@ -116,7 +116,7 @@ Check these signals in order and stop at the first hit:
 4. **Recent conversation mentions a Linear issue ID** in a way that implies this work belongs under it
 5. **The source reads like a piece of a larger initiative** — phrases like "as part of", "step toward", "building on", "first of several", or a narrow scope that clearly implies a broader effort (e.g., "add the webhook endpoint" when no broader "Gorgias integration" context is given). This is softer than signals 1-4, but strong enough to warrant a question.
 
-**For strong signals (1-4)**, fetch the candidate via `mcp__*_Linear__get_issue(issue_id: "ENG-<N>")` to confirm it exists and pull its title, then confirm with the user in a turn-ending plain-text question ("Nest this under ENG-<N>: <title>? Or top-level?").
+**For strong signals (1-4)**, fetch the candidate via `mcp__*_Linear__get_issue(issue_id: "ENG-<N>")` to confirm it exists and pull its title, then ask the user "Nest this under ENG-<N>: <title>? Or top-level?" and wait for the answer.
 
 **For weak signals (5) — or if the source's scope feels too narrow to stand alone —** search Linear first and present candidates:
 
@@ -124,7 +124,7 @@ Check these signals in order and stop at the first hit:
 mcp__*_Linear__list_issues(query: "<relevant keywords from source>", team_id: "<ENG team_id>", limit: 5)
 ```
 
-Either way, ask in one turn-ending plain-text message — never `AskUserQuestion` (see Common Mistakes). The weak-signal form looks like this; for strong signals, name the single candidate instead of listing:
+Either way, ask and wait for the answer. The weak-signal form looks like this; for strong signals, name the single candidate instead of listing:
 
 ```
 This reads like part of a larger effort. Pick a parent?
@@ -148,7 +148,7 @@ Split the source content into three buckets. The first two are **required conten
 
 **If the source contains design decisions, multi-option discussions, edge cases, acceptance criteria, or implementation steps, drop them.** Briefly tell the user what you dropped so they're not surprised the issue is shorter than the source. The implementer rediscovers what's relevant once they pick a direction.
 
-Present the extraction and ask for verification in a single plain-text message that **ends your turn** — do NOT put the extraction in the same turn as any tool call (see "Any question via `AskUserQuestion`" in Common Mistakes):
+Present the extraction, ask for verification, and wait for the answer:
 
 ```
 Here's what I extracted:
@@ -172,7 +172,7 @@ Does this match? Reply "looks right" to continue, ask for the source quotes behi
 
 If nothing was dropped, omit that block.
 
-The verification is a sanity check, **not** a walk-through. If the user asks for quotes, re-present the extraction with the supporting source line(s) under each bullet (or `(your hint, not in source)` for items the user filled in during the gap-fill prompt), ending the turn the same way. Proceed to Step 4 only on an affirmative reply; fold any correction in and re-present.
+The verification is a sanity check, **not** a walk-through. If the user asks for quotes, re-present the extraction with the supporting source line(s) under each bullet (or `(your hint, not in source)` for items the user filled in during the gap-fill prompt), ask for verification again, and wait for the answer. Proceed to Step 4 only on an affirmative reply; fold any correction in and re-present.
 
 
 ## Step 4: Evaluate scope
@@ -183,7 +183,7 @@ Evaluate whether to split. Propose a split if any of these apply:
 - Natural dependency layers (e.g., a foundation piece that must land before a downstream one can start)
 - Two or more separable business milestones that could each ship independently
 
-**If a split is warranted**, present the proposal and the question together in one plain-text message that **ends your turn** — no `AskUserQuestion`, no tool calls in the same turn:
+**If a split is warranted**, present the proposal, ask the question, and wait for the answer:
 
 ```
 This is large enough to split into smaller issues:
@@ -229,13 +229,13 @@ Before any Linear write, show a **compact summary** of what will be created — 
 3. <title> — <one-line summary> (parallel to #2)
 ```
 
-End the summary message with the confirmation question, in the same turn-ending plain-text message — no `AskUserQuestion`:
+After the summary, ask for confirmation and wait for the answer:
 
 ```
 Create these in Linear? Reply "create" to write them now, "show markdown" to preview the full rendered bodies first, or tell me what to tweak.
 ```
 
-If the user asks for the markdown, render the full description(s) — for a single issue, the body using the template from Step 6; for a split, the parent body followed by each sub-issue body — and end the turn asking for confirmation again.
+If the user asks for the markdown, render the full description(s) — for a single issue, the body using the template from Step 6; for a split, the parent body followed by each sub-issue body — then ask for confirmation again and wait for the answer.
 
 **The Linear write is hard-gated on an explicit affirmative reply.** Never create issues off an ambiguous response; when in doubt, ask again.
 
@@ -356,9 +356,9 @@ End with a one-liner that offers both ways to iterate: "Refine directly in Linea
 | 0. Preflight | Linear `list_teams` | Auth verified, ENG `team_id` cached |
 | 1. Locate source | `Read` (if file) | Raw source content |
 | 2. Infer parent | `git branch --show-current`, Linear `get_issue`/`list_issues` | Parent candidate (or none) |
-| 3. Extract & verify | turn-ending text, freeform reply | Problem + Impact + optional Direction, user-confirmed |
-| 4. Scope | turn-ending text, freeform reply (only if split warranted) | Split or keep |
-| 5. Summary + confirm | turn-ending text, freeform reply | Go/tweak |
+| 3. Extract & verify | Ask user, wait for answer | Problem + Impact + optional Direction, user-confirmed |
+| 4. Scope | Ask user, wait for answer (only if split warranted) | Split or keep |
+| 5. Summary + confirm | Ask user, wait for answer | Go/tweak |
 | 6. Create | Linear MCP `save_issue` | Issue(s) + blocker relations |
 | 7. Report | — | Links |
 
@@ -375,10 +375,6 @@ End with a one-liner that offers both ways to iterate: "Refine directly in Linea
 ### Skipping Problem because the source jumped straight to solutions
 - **Problem:** Source was a design doc that didn't explicitly state the problem, and you let the issue ship without one.
 - **Fix:** Ask the user. Problem is load-bearing — the implementer needs it to judge edge cases when the spec is silent. A short question is enough; don't drag the user through a workshop.
-
-### Any question via `AskUserQuestion`
-- **Problem:** Text emitted in the same turn as a tool call is not reliably rendered (the VSCode extension drops it), so "print the context, then call `AskUserQuestion`" shows the user a bare dialog with no explanation to judge by. This bit repeatedly even for "short" choices like parent picking, so the tool is banned from this skill entirely.
-- **Fix:** Never call `AskUserQuestion`. Every question — parent confirmation (Step 2), extraction verification (Step 3), split proposal (Step 4), creation summary (Step 5) — is one plain-text message with the content and the question together, ending the turn; the user replies freeform.
 
 ### Listing sub-issues in the parent description
 - **Problem:** Writing a "Sub-issues" section (or bulleted links) into the parent body. Linear already shows the hierarchy in its UI, so the list is redundant, and it goes stale the moment the split changes.
