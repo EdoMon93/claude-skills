@@ -35,4 +35,6 @@ Suppress routine progress and acknowledgments in both directions. Notify only th
 
 Discover and prefer native thread tools. Distinguish ordinary threads from delegated subagents. In T3, launch app-bound threads/worktrees through native orchestration, not shell-only worktrees. Retain launch IDs and inspect uncertain outcomes before retrying. State missing capabilities and limitations honestly.
 
-Default to worker wakeups on actionable events; otherwise stay idle. Use waits, timeouts or recurring checks only for specific needs notifications cannot cover. Bind checks to the coordinator, deduplicate them, define stopping conditions and end them when resolved. Keep reminders short and read durable state on demand.
+Use worker wakeups on actionable events; otherwise stay idle. Do not create, re-enable or rebind general recurring coordination or missed-event recovery checks unless the user explicitly requests periodic polling. An existing schedule is not a reason to resume it.
+
+Use waits, timeouts or scoped recurring checks only for a concrete event/source that cannot notify. Record that notification gap and the stopping condition, prefer a one-off check, deduplicate checks and bind them to the coordinator. End them when resolved; keep reminders short and read durable state on demand.
