@@ -11,9 +11,11 @@ Use the issue tracker as the source of truth and follow repo delivery guidance. 
 
 ## Assign work
 
-Refresh tracker and thread state before assignments to identify owners, PRs and dependencies and avoid duplicate workers. Deferred work qualifies when behavior is decided and its queue is authorized. Surface unresolved product decisions.
+Refresh tracker and thread state before assignments to identify owners, PRs and dependencies and avoid duplicate workers. Deferred work qualifies when behavior is decided and its queue is authorized.
 
 Assign bounded issues or related issues with agreed outcomes and completion requirements. Coordinate dependencies, shared files and heavy jobs within requested concurrency and available resources. Keep implementation with its owner through required checks, fresh review, fixes and authorized merge.
+
+Workers own blockers within their scope. When user input is needed, they ask directly in their own thread and send the coordinator only a brief blocked status and thread link. Include this routing in assignments. The coordinator manages dependencies and resources and continues other authorized work; it does not relay worker questions.
 
 On completion, refresh state and assign the next eligible work to maintain requested activity. Report specific blockers or an exhausted queue; do not invent work.
 
