@@ -54,6 +54,17 @@ such as a sequence diagram for an OAuth handshake and a flowchart for what happe
 - Give each outcome its own branch. An arrow looping back reads as the step happening again.
 - No size limit. Split by stage when one diagram would tell more than one story, such as a first
   install and a returning shop.
+- When you split a flow into several diagrams, end each split path on a connector and start the
+  next diagram from a connector with the same name, so the reader can match them up:
+  `(["New shop setup →"])` at the end, `(["→ New shop setup"])` at the start. In a sequence
+  diagram, use a `Note over …: → New shop setup` instead.
+- When a path continues into a flow the change leaves alone, end it on a ghost box named after
+  that flow, so the reader knows it goes on rather than stops there. If the flow is drawn
+  elsewhere, say where ("Control handover flow (docs/meta-conversation-routing.md)"). Draw it
+  dashed and grey, with a dashed arrow (`-.->`) into it:
+  `classDef omitted stroke-dasharray: 5 5,stroke:#888,color:#888,fill:none`. No fill, so it works in
+  light and dark themes.
+  Never ghost a part of the change itself; draw it or cover it in the prose.
 
 ## Before sharing
 
@@ -66,4 +77,4 @@ short, and raw Mermaid reads as code anyway:
 curl -so diagram.png "https://mermaid.ink/img/$(base64 -w0 diagram.mmd | tr '+/' '-_' | tr -d '=')?type=png&bgColor=white"
 ```
 
-Use the same PNG for messaging providers, which might not render Mermaid.
+Use the same PNG for messaging providers, which may not support Mermaid.
