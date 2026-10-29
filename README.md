@@ -13,6 +13,7 @@ Personal collection of skills shared by Claude Code and Codex.
 | [assisted-code-review](assisted-code-review/SKILL.md) | Review a GitHub PR's code changes and provide structured feedback before merge |
 | [slack-assistant](slack-assistant/SKILL.md) | Read Slack conversations and prepare or send messages with explicit authorization and a final context check |
 | [generate-pr-announcement](generate-pr-announcement/SKILL.md) | Draft a short Slack-style message announcing that a PR is ready for review |
+| [documenting-flows](documenting-flows/SKILL.md) | Document flows with Mermaid diagrams, including before and after views for fixes and changes |
 | [onboard-issue](onboard-issue/SKILL.md) | Get up to speed on an issue before implementing — explore code, prior reports and prod, then align on the issue and ask what's genuinely undecided |
 | [issue-summary](issue-summary/SKILL.md) | Summarize the working repo's open issues and ongoing work using its own tracker and workflow |
 | [monitor-progress](monitor-progress/SKILL.md) | Explicitly invoked progress review with decision verification, simplifications, and useful generalizations |
