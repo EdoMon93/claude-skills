@@ -8,6 +8,7 @@ description: Use when you are implementing in tight collaboration with the user.
 If the current branch and workspace are where you'd expect to be doing this work, proceed. If not, ask before continuing.
 
 If brainstorming or grilling already happened in this session, don't re-do it. If you're unsure whether the user has decided, ask. Use TDD inside each unit: failing test first, then implementation.
+Search for existing helpers before adding one, and again whenever the design changes.
 
 Let commit boundaries emerge from the work rather than partitioning upfront. When you reach a self-contained unit:
 
