@@ -22,6 +22,8 @@ When asked for "the thread where X reported Y", match it to the topic of the con
 
 Don't ask the user whether a message went out, what someone replied, or who reacted. Read it. Ask only if the Slack MCP is down (see section 6).
 
+The same goes for a draft you created in an earlier turn. The user may have edited it, sent it, or thrown it away since. Verify its current state before acting on it, if possible.
+
 ## 3. Posting needs the user's check
 
 - Send or schedule only when the user explicitly authorizes that action. Showing a draft does not authorize sending it.
